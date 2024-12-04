@@ -191,7 +191,7 @@ module fedata
         !! Scale length of vectors for plotting
     real(wp), parameter :: scale_thk = 1.0_wp
         !! Scale thickness of lines
-    real(wp), parameter :: n_increments = 30
+    integer, parameter :: n_increments = 20
     logical, parameter :: banded = .false.
     !logical, parameter :: banded = .true.
         !! Indicate whether the system matrix is in banded form or not (full matrix)
@@ -199,6 +199,7 @@ module fedata
         !! Indicate if the analysis is also plastic
     logical, parameter :: penalty = .false.
         !! Indicate whether boundary conditions are imposed by the penalty method or not (zero-one method)
+    logical :: unloading = .false.
     real(wp), parameter :: penalty_fac = 1.0e10_wp
         !! Scaling factor for boundary conditions imposed by the penalty method
 

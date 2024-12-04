@@ -665,11 +665,13 @@ contains
 !--------------------------------------------------------------------------------------------------
 !
     subroutine plane42_ss_plastic(xe, delta_de_n, young, youngt, nu,estress_p,estress_n, &
-        estrain_p, estrain_n, esigma_Y_p, esigma_Y_n)
+        estrain_p, estrain_n, esigma_Y_p, esigma_Y_n, unloading)
 
         real(wp), intent(in) :: young, youngt, nu
             ! - young = elastic young modulus
             ! - youngt = plastic young modulus
+
+        logical, intent(in) :: unloading
 
         real(wp), dimension(8,1), intent(in) :: delta_de_n
             ! delta_de_n displacement of increment n of the element e
@@ -814,7 +816,7 @@ contains
 
                 print*,'delta_estrain_n',delta_estrain_n
 
-                if (F<0) then
+                if (F<0 .or. unloading) then
                     delta_estress_n = matmul(cmat,delta_estrain_n)
                     do k = 1,3
                         if (abs(delta_estress_n(k,1)) < 10e-8) then

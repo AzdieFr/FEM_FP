@@ -5,7 +5,7 @@ module fea
     implicit none
     save
     private
-    public :: displ, initial, buildload, buildstiff, enforce, recover, plastic_iterator_1, plastic_enforce
+    public :: displ, initial, buildload, buildstiff, enforce, recover, plastic_iterator_1, plastic_enforce, unload
 
 contains
 
@@ -76,6 +76,7 @@ contains
 
         if (plasticity) then
             call plastic_iterator_1
+            call unload
             stop
         end if
 
@@ -522,7 +523,7 @@ contains
                     print*,'estrain_p',estrain_p
 
                     call plane42_ss_plastic(xe, delta_de_n, young, youngt, nu,estress_p,estress_n, &
-                                            estrain_p, estrain_n,esigma_Y_p, esigma_Y_n)
+                                            estrain_p, estrain_n,esigma_Y_p, esigma_Y_n, unloading)
                     print *, 'element stress 1 before update: ', stress(e,1)
                     stress(e,1) = stress(e,1) + estress_n(1,1)
                     print *, 'element stress 1 after update: ', stress(e,1)
@@ -627,5 +628,69 @@ contains
             end if
         end if
     end subroutine plastic_enforce
+
+    subroutine unload
+
+        use fedata
+        use numeth
+        use processor
+
+        integer :: i
+        real(wp) :: p_n(size(p)), delta_p(size(p)), stress_array_unload(2*n_increments), &
+         strain_array_unload(2*n_increments)
+
+         unloading = .true.
+
+
+        call buildload !Makes sure vector p is correct
+
+        stress_array_unload(1:n_increments) = stress_array
+        strain_array_unload(1:n_increments) = strain_array
+
+        p_n = p
+        del_p = 0.0
+        delta_p = -1.0*p/REAL(n_increments)
+        del_d = 0.0
+
+        d = d
+        !print*,'p_n_0',p_n
+
+        DO i = 1, n_increments
+            PRINT *, "Iteration unload number: ", i
+
+            ! Update P_n
+            p_n = p_n + delta_p
+            del_p = delta_p
+            !print*, 'i = ', i
+            print*,'p_n',p_n
+            ! Compute stiffness matrix
+            call buildstiff
+
+            ! Enforce boundary conditions
+            call plastic_enforce
+
+            ! Solve for delta_D
+            ! Factor stiffness matrix
+            call factor(kmat)
+            ! Solve for displacement vector
+            call solve(kmat, del_p)
+            ! Transfer results
+            del_d(1:neqn) = del_p(1:neqn)
+            print *,'deld: ', del_d
+            ! Update D_n
+            d = d + del_d
+            print*,'d',d
+            ! Recover stress and strain
+            call recover
+            stress_array_unload(n_increments+i) = stress(2,1)
+            strain_array_unload(n_increments+i) = strain(2,1)
+        END DO
+        !!Process the results
+        print*,'strain_array', strain_array_unload
+        print*,'stresse_array', stress_array_unload
+        call generate_matlab_code(strain_array_unload, stress_array_unload)
+        unloading = .false.
+
+    end subroutine unload
 
 end module fea
