@@ -952,9 +952,9 @@ contains
         write(10, '(A)') 'vector1 = ['
         do i = 1, size(vector1)
             if (i == size(vector1)) then
-                write(10, '(F8.2)') vector1(i)
+                write(10, '(F8.5)') vector1(i)
             else
-                write(10, '(F8.2, 1X)') vector1(i)
+                write(10, '(F8.5, 1X)') vector1(i)
             end if
         end do
         write(10, '(A)') '];'
@@ -962,9 +962,9 @@ contains
         write(10, '(A)') 'vector2 = ['
         do i = 1, size(vector2)
             if (i == size(vector2)) then
-                write(10, '(F8.2)') vector2(i)
+                write(10, '(F8.5)') vector2(i)
             else
-                write(10, '(F8.2, 1X)') vector2(i)
+                write(10, '(F8.5, 1X)') vector2(i)
             end if
         end do
         write(10, '(A)') '];'

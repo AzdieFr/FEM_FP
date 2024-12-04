@@ -173,7 +173,7 @@ contains
         del_d = 0.0
 
         d = 0.0
-        print*,'p_n_0',p_n
+        !print*,'p_n_0',p_n
 
         do i = 1, ne
             sigma_yield(i) = mprop(element(i)%mat)%yieldstress
@@ -185,7 +185,7 @@ contains
             ! Update P_n
             p_n = p_n + delta_p
             del_p = delta_p
-            print*, 'i = ', i
+            !print*, 'i = ', i
             print*,'p_n',p_n
             ! Compute stiffness matrix
             call buildstiff
@@ -205,8 +205,11 @@ contains
             print*,'d',d
             ! Recover stress and strain
             call recover
-            stress_array(i) =stress(1,1)
-            strain_array(i) = strain(1,1)
+            stress_array(i) = stress(2,1)
+            strain_array(i) = strain(2,1)
+            if (i>= 13) then
+                !pause
+            end if
         END DO
         !!Process the results
         print*,'strain_array', strain_array
@@ -271,7 +274,7 @@ contains
                 stop
             end select
         end do
-        print*,'p',p
+        !print*,'p',p
     end subroutine buildload
 !
 !--------------------------------------------------------------------------------------------------
@@ -325,7 +328,7 @@ contains
                 nu = mprop(element(e)%mat)%nu
                 thk = mprop(element(e)%mat)%thk
                 youngt = mprop(element(e)%mat)%youngt
-                print*,'thk',thk
+                !print*,'thk',thk
 
 
                 if (plasticity) then
@@ -357,9 +360,9 @@ contains
                 end do
             end if
         end do
-        print*,'Kmat'
+        !print*,'Kmat'
         DO i = 1, neqn
-            print "(24(f4.2,tr1))", kmat(i,1:neqn)
+            !print "(24(f4.2,tr1))", kmat(i,1:neqn)
         END DO
 
     end subroutine buildstiff
@@ -497,12 +500,15 @@ contains
                 nu = mprop(element(e)%mat)%nu
 
                 if (plasticity) then
+                    print *, 'element number: ', e
                     youngt = mprop(element(e)%mat)%youngt
                     delta_de_n = 0
                     do i = 1, nen
                         delta_de_n(2*i-1,1) = del_d(edof(2*i-1))
                         delta_de_n(2*i,1)   = del_d(edof(2*i))
                     end do
+                    !print *, 'deltaden', delta_de_n
+
                     estress_p(1,1) = stress_p(e,1)
                     estress_p(2,1) = stress_p(e,2)
                     estress_p(3,1) = stress_p(e,3)
@@ -514,9 +520,12 @@ contains
                     esigma_Y_p = sigma_yield(e)
                     print*,'estress_p',estress_p
                     print*,'estrain_p',estrain_p
+
                     call plane42_ss_plastic(xe, delta_de_n, young, youngt, nu,estress_p,estress_n, &
                                             estrain_p, estrain_n,esigma_Y_p, esigma_Y_n)
+                    print *, 'element stress 1 before update: ', stress(e,1)
                     stress(e,1) = stress(e,1) + estress_n(1,1)
+                    print *, 'element stress 1 after update: ', stress(e,1)
                     stress(e,2) = stress(e,2) + estress_n(2,1)
                     stress(e,3) = stress(e,3) + estress_n(3,1)
 
@@ -531,17 +540,6 @@ contains
                 else
                     call plane42_ss(xe, de, young, nu, estress, estrain, eprincipals)
                 end if
-                stress = 0
-                strain = 0
-
-                do k = 1,3
-                    if (abs(estress_n(k,1)) >10**-8) then
-                        stress(e,k) = estress_n(k,1)
-                    end if
-                    if (abs(estrain_n(k,1)) >10**-8) then
-                        strain(e,k) = estrain_n(k,1)
-                    end if
-                end do
                 principals(e, 1:3) = eprincipals
                 stress_p = stress
                 strain_p = strain
@@ -549,6 +547,7 @@ contains
                 print*,'strain',strain
             end select
         end do
+        !pause
     end subroutine recover
 !
 !--------------------------------------------------------------------------------------------------

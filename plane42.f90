@@ -725,9 +725,9 @@ contains
         cmat(3,3) = fact*(1-nu)/2
         print*,'cmat'
         DO k = 1, 3
-            print "(24(f4.2,tr1))", cmat(k,1:3)
+            !print "(24(f4.2,tr1))", cmat(k,1:3)
         END DO
-        gpn = 2
+        gpn = 1
 
         if (gpn == 1) then
             gauss_points = [real(wp):: 0.0]
@@ -749,9 +749,13 @@ contains
         print*,'h',h
         F = sigma_e - esigma_Y_p
         print*,'F', F
-        dFdsigma_p(1,1) = (2*estress_p(1,1) - estress_p(2,1))/sigma_e
-        dFdsigma_p(1,2) = (2*estress_p(2,1) - estress_p(1,1))/sigma_e
-        dFdsigma_p(1,3) = 6*estress_p(3,1)/sigma_e
+        if (F >= 0) then
+            dFdsigma_p(1,1) = (2*estress_p(1,1) - estress_p(2,1))/(sigma_e*2)
+            dFdsigma_p(1,2) = (2*estress_p(2,1) - estress_p(1,1))/(sigma_e*2)
+            dFdsigma_p(1,3) = 6*estress_p(3,1)/(sigma_e*2)
+        else
+            dFdsigma_p = 0
+        endif
         print*,'dFdsigma_p',dFdsigma_p
         do i=1, gpn
             zeta = gauss_points(i)
@@ -783,12 +787,14 @@ contains
                 n_tylde(3, 1:8) = [real(wp) :: 0, n1ze, 0, n2ze, 0, n3ze, 0, n4ze]
                 n_tylde(4, 1:8) = [real(wp) :: 0, n1et, 0, n2et, 0, n3et, 0, n4et]
 
+
                 G_tylde = 0
                 G_tylde(1, 1:4) = [real(wp) :: J_(2,2), -J_(1,2), 0.0,0.0]
                 G_tylde(2, 1:4) = [real(wp) :: -J_(2,1), J_(1,1), 0.0,0.0]
                 G_tylde(3, 1:4) = [real(wp) :: 0.0, 0.0, J_(2,2), -J_(1,2)]
                 G_tylde(4, 1:4) = [real(wp) :: 0.0, 0.0, -J_(2,1), J_(1,1)]
                 G_tylde = (1/det_J)*G_tylde
+
 
                 L(1, 1:4) = [real(wp) :: 1.0, 0.0, 0.0, 0.0]
                 L(2, 1:4) = [real(wp) :: 0.0, 0.0, 0.0, 1.0]
@@ -797,17 +803,17 @@ contains
                 bmat = matmul(L, matmul(G_tylde, N_tylde))
 
                 delta_estrain_n = matmul(bmat,delta_de_n)
+                !print *, 'del strain', delta_estrain_n
+
                 do k = 1,3
                     if (abs(delta_estrain_n(k,1)) < 10e-8) then
                         delta_estrain_n(k,1) = 0
                     end if
                 end do
-                print*,'bmat'
-                DO k = 1, 3
-                    print "(24(f4.2,tr1))", bmat(k,1:8)
-                END DO
+                !print*,'bmat'
 
                 print*,'delta_estrain_n',delta_estrain_n
+
                 if (F<0) then
                     delta_estress_n = matmul(cmat,delta_estrain_n)
                     do k = 1,3
@@ -817,6 +823,7 @@ contains
                     end do
                     esigma_Y_n = esigma_Y_p
                     print*, 'delta_estress_n', delta_estress_n
+                    print *,'yield: ', esigma_Y_n
                 else
                     lambda_denom = matmul(matmul(dFdsigma_p,cmat),transpose(dFdsigma_p))
                     delta_lambda_n = matmul(matmul(dFdsigma_p,cmat)/(lambda_denom(1,1) + h), delta_estrain_n)
@@ -824,13 +831,14 @@ contains
                     delta_estress_n = matmul(cmat,delta_estrain_n - transpose(dFdsigma_p)*delta_lambda_n(1,1))
                     if (delta_lambda_n(1,1) >= 0) then
                         esigma_Y_n = esigma_Y_p + h*delta_lambda_n(1,1)
+                        print *,'yield: ', esigma_Y_n
                     end if
                 end if
-                estress_n = estress_p + delta_estress_n
-                estrain_n =estrain_p + delta_estrain_n
+                estress_n =  delta_estress_n
+                estrain_n = delta_estrain_n
             end do
         end do
-
+        print *, 'elem stress iter', estress_n
     end subroutine plane42_ss_plastic
 
 end module plane42
