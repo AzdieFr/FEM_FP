@@ -493,6 +493,17 @@ contains
         end do
         write(13,'("];")')
 
+        !write deformation type
+        write(13,'("PLA = [")')
+        do e = 1, ne
+            if (sqrt(stress(e,1)**2 + stress(e,2)**2 - stress(e,1)*stress(e,2) + 3*stress(e,3)**2) - sigma_yield(e) >= 0) then
+                write (13,'(f15.1,1x)') (1.0)
+            else
+                write (13,'(f15.1,1x)') (0.0)
+            end if
+        end do
+        write(13,'("];")')
+
         ! write deformation vector
         write(13,'("D = [")')
         do i = 1, neqn
@@ -547,7 +558,11 @@ contains
             write(13,*) '        2*IX(e,3)-1 2*IX(e,3) 2*IX(e,4)-1 2*IX(e,4)];'
             write(13,*) '    xx = X(IX(e,1:4),1) + D(edof(1:2:8));'
             write(13,*) '    yy = X(IX(e,1:4),2) + D(edof(2:2:8));'
-            write(13,*) '    patch(xx,yy,[1 1 0]);'
+            write(13,*) '    if PLA(e) == 0'
+            write(13,*) '       patch(xx,yy,[0 0 1]);'
+            write(13,*) '    else'
+            write(13,*) '       patch(xx,yy,[1 0 0]);'
+            write(13,*) '    end'
             write(13,*) 'end'
             write(13,*) 'title(',"'",'Deformed',"'",')'
             write(13,*) 'axis equal;'

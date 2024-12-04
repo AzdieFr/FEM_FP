@@ -191,7 +191,7 @@ module fedata
         !! Scale length of vectors for plotting
     real(wp), parameter :: scale_thk = 1.0_wp
         !! Scale thickness of lines
-    integer, parameter :: n_increments = 50
+    integer, parameter :: n_increments = 10
     logical, parameter :: banded = .false.
     !logical, parameter :: banded = .true.
         !! Indicate whether the system matrix is in banded form or not (full matrix)

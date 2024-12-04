@@ -21,7 +21,7 @@ contains
         use plane42rect
         use plane42
 
-        integer:: e
+        integer:: e, i
 
 ! Hint for continuum elements:
         !integer, parameter :: mdim = 8
@@ -58,6 +58,9 @@ contains
         stress = 0
         stress_p = 0
         strain_p = 0
+        do i = 1, ne
+            sigma_yield(i) = mprop(element(i)%mat)%yieldstress
+        end do
     end subroutine initial
 !
 !--------------------------------------------------------------------------------------------------
@@ -76,7 +79,40 @@ contains
 
         if (plasticity) then
             call plastic_iterator_1
-            call unload
+            !call unload
+            !p = p*3
+            !pause
+            !call plastic_iterator_1
+            ! Output results
+            call output
+
+        ! Plot deformed structure
+            call plotmatlabdef('Deformed')
+
+        ! Plot element values
+            allocate (plotval(ne))
+            allocate (psv1(ne))
+            allocate (psv2(ne))
+            allocate (psvang(ne))
+            psv1 = 0
+            psv2 = 0
+            psvang = 0
+            do e = 1, ne
+                if (element(e)%id == 1) then
+                    plotval(e) = stress(e,1)
+                else if (element(e)%id == 2) then
+                !print *, 'Finding vm stresses for continuum elements'
+                !print*, stress(e, 1:3)
+                    plotval(e) = sqrt(stress(e,1)**2.0 + stress(e,2)**2.0 - stress(e,1)*stress(e,2) + 3.0*stress(e,3)**2.0) !THIS HAS TO BE ADDED
+                    psv1(e) = principals(e,1)
+                    psv2(e) = principals(e,2)
+                    psvang(e) = principals(e,3)
+                !print *, 'WARNING in fea/displ: Plot value not set -- you need to add your own code here'
+                end if
+            end do
+            call plotmatlabeval('Stresses',plotval)
+        !Here we need to plot the thing for principals
+            call plotmatlabevec('Principal stresses and direction',psv1,psv2,psvang)
             stop
         end if
 
@@ -175,10 +211,6 @@ contains
 
         d = 0.0
         !print*,'p_n_0',p_n
-
-        do i = 1, ne
-            sigma_yield(i) = mprop(element(i)%mat)%yieldstress
-        end do
 
         DO i = 1, n_increments
             PRINT *, "Iteration number: ", i
