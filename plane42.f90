@@ -212,7 +212,7 @@ contains
             print *, 'Invalid number of gauss points'
             stop
         end if
-
+        re = 0
         nface = 0
         f = 0
         if (eface == 1) then

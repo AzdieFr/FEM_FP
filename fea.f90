@@ -97,6 +97,7 @@ contains
             psv1 = 0
             psv2 = 0
             psvang = 0
+            plotval = 0
             do e = 1, ne
                 if (element(e)%id == 1) then
                     plotval(e) = stress(e,1)
@@ -111,6 +112,7 @@ contains
                 end if
             end do
             call plotmatlabeval('Stresses',plotval)
+            stop
         !Here we need to plot the thing for principals
             call plotmatlabevec('Principal stresses and direction',psv1,psv2,psvang)
             stop
@@ -210,7 +212,8 @@ contains
         del_d = 0.0
 
         d = 0.0
-        !print*,'p_n_0',p_n
+        !print*,'p_n_0',p
+
 
         DO i = 1, n_increments
             PRINT *, "Iteration number: ", i
