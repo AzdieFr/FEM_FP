@@ -818,11 +818,6 @@ contains
 
                 if (F<0 .or. unloading) then
                     delta_estress_n = matmul(cmat,delta_estrain_n)
-                    do k = 1,3
-                        if (abs(delta_estress_n(k,1)) < 10e-8) then
-                            delta_estress_n(k,1) = 0
-                        end if
-                    end do
                     esigma_Y_n = esigma_Y_p
                     print*, 'delta_estress_n', delta_estress_n
                     print *,'yield: ', esigma_Y_n
