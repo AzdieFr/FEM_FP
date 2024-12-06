@@ -80,7 +80,7 @@ contains
         if (plasticity) then
             call plastic_iterator_1
             !call unload
-            !p = p*3
+            !reloading = .true.
             !pause
             !call plastic_iterator_1
             ! Output results
@@ -205,6 +205,10 @@ contains
 
 
         call buildload !Makes sure vector p is correct
+
+        if (reloading .eqv. .true.) then
+            p = p*3
+        end if
 
         p_n = 0.0
         del_p = 0.0

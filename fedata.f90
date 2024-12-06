@@ -200,6 +200,7 @@ module fedata
     logical, parameter :: penalty = .false.
         !! Indicate whether boundary conditions are imposed by the penalty method or not (zero-one method)
     logical :: unloading = .false.
+    logical :: reloading = .false.
     real(wp), parameter :: penalty_fac = 1.0e10_wp
         !! Scaling factor for boundary conditions imposed by the penalty method
 
