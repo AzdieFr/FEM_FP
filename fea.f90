@@ -105,14 +105,13 @@ contains
                 !print *, 'Finding vm stresses for continuum elements'
                 !print*, stress(e, 1:3)
                     plotval(e) = sqrt(stress(e,1)**2.0 + stress(e,2)**2.0 - stress(e,1)*stress(e,2) + 3.0*stress(e,3)**2.0) !THIS HAS TO BE ADDED
-                    psv1(e) = principals(e,1)
-                    psv2(e) = principals(e,2)
-                    psvang(e) = principals(e,3)
+                    psv1(e) = 0.5*(stress(e,1)+stress(e,2))+sqrt(((stress(e,1)-stress(e,2))/2.0)**2.0+stress(e,3)**2.0)
+                    psv2(e) = 0.5*(stress(e,1)+stress(e,2))-sqrt(((stress(e,1)-stress(e,2))/2.0)**2.0+stress(e,3)**2.0)
+                    psvang(e) = atan2((-2.0*stress(e,3))/(psv1(e)-psv2(e)),(stress(e,1)-stress(e,2))/(psv1(e)-psv2(e)))/2
                 !print *, 'WARNING in fea/displ: Plot value not set -- you need to add your own code here'
                 end if
             end do
             call plotmatlabeval('Stresses',plotval)
-            stop
         !Here we need to plot the thing for principals
             call plotmatlabevec('Principal stresses and direction',psv1,psv2,psvang)
             stop
